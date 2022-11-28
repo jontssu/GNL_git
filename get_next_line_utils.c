@@ -6,7 +6,7 @@
 /*   By: jole <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/16 13:08:01 by jole              #+#    #+#             */
-/*   Updated: 2022/11/17 20:10:07 by jole             ###   ########.fr       */
+/*   Updated: 2022/11/21 17:57:11 by jole             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,22 +27,27 @@ char	*ft_strchr(const char *s, int c)
 	return (0);
 }
 
-char	*ft_strjoin(char const *s1, char const *s2, int s1_len, int s2_len)
+char	*ft_strjoin(t_list *list, char const *s2, int s2_len)
 {
 	char	*new_s;
 
-	if (!s1)
-		s1 = ft_strdup("");
-	if (s1 == 0 || s2 == 0)
+	if (!list->surplus)
+	{
+		list->surplus = ft_strdup("");
+		list->beginning = list->surplus;
+	}
+	if (list->surplus == 0 || s2 == 0)
 		return (0);
-	new_s = malloc((s1_len + s2_len + 1) * sizeof(char));
+	new_s = malloc((list->total_len + s2_len + 1) * sizeof(char));
 	if (!new_s)
 		return (0);
-	ft_memcpy(new_s, s1, s1_len);
-	ft_memcpy(new_s + s1_len, s2, s2_len);
-	new_s[s1_len + s2_len] = '\0';
-	free((void *)s1);
-	free((void *)s2);
+	ft_memcpy(new_s, list->surplus, list->total_len);
+	ft_memcpy(new_s + list->total_len, s2, s2_len);
+	new_s[list->total_len + s2_len] = '\0';
+	free((void *)list->beginning);
+	list->i = 0;
+	if (s2)
+		free((void *)s2);
 	return (new_s);
 }
 

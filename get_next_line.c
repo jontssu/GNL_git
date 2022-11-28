@@ -6,47 +6,47 @@
 /*   By: jole <marvin@42.fr>                        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/16 13:07:00 by jole              #+#    #+#             */
-/*   Updated: 2022/11/17 20:24:09 by jole             ###   ########.fr       */
+/*   Updated: 2022/11/24 19:20:21 by jole             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-#include <stdio.h> /// LOL
+
 char	*get_next_line(int fd)
 {
-	char		*str;
-	static char	*surplus;
+	char			*str;
+	static t_list	list;
 
 	if (BUFFER_SIZE <= 0)
 		return (0);
-	surplus = get_line(fd, surplus);
-	if (!surplus)
+	list.surplus = get_line(fd, &list);
+	if (!list.surplus)
 		return (0);
-	if (!*surplus)
+	if (!*list.surplus)
 	{
-		free(surplus);
-		surplus = NULL;
+		free(list.surplus);
+		list.surplus = NULL;
 		return (0);
 	}
-	str = malloc((strlen_newline(surplus) + 2) * sizeof(char));
+	list.len = strlen_newline(list.surplus);
+	str = malloc((list.len + 2) * sizeof(char));
 	if (!str)
 		return (0);
-	ft_strlcpy(str, surplus, (strlen_newline(surplus) + 2));
-	surplus = trim_surplus(surplus);
+	ft_strlcpy(str, list.surplus, (list.len + 2));
+	skip_line(&list);
+	list.total_len -= list.i;
+	if (!*list.surplus)
+		list.total_len = 0;
 	return (str);
 }
 
-char	*get_line(int fd, char *surplus)
+char	*get_line(int fd, t_list *list)
 {
-	int			read_val;
-	char		*buf;
-	int			total_len;
+	int		read_val;
+	char	*buf;
 
-	total_len = 0;
-	if (surplus)
-		total_len = ft_strlen(surplus);
 	read_val = 1;
-	while (!ft_strchr(surplus, '\n') && read_val)
+	while (!ft_strchr(list->surplus, '\n') && read_val)
 	{
 		buf = malloc((BUFFER_SIZE) * sizeof(char));
 		if (!buf)
@@ -57,10 +57,11 @@ char	*get_line(int fd, char *surplus)
 			free(buf);
 			return (0);
 		}
-		surplus = ft_strjoin(surplus, buf, total_len, read_val);
-		total_len += read_val;
+		list->surplus = ft_strjoin(list, buf, read_val);
+		list->total_len += read_val;
+		list->beginning = list->surplus;
 	}
-	return (surplus);
+	return (list->surplus);
 }
 
 int	strlen_newline(char	*str)
@@ -81,22 +82,12 @@ int	strlen_newline(char	*str)
 	return (len);
 }
 
-char	*trim_surplus(char *str)
+void	skip_line(t_list *list)
 {
-	char	*trimmed_str;
-	int		len;
-	int		i;
-
-	i = 0;
-	len = strlen_newline(str) + 1;
-	trimmed_str = malloc((ft_strlen(str) - len + 1) * sizeof(char));
-	if (!trimmed_str)
-		return (0);
-	while (str[len])
-		trimmed_str[i++] = str[len++];
-	trimmed_str[i] = 0;
-	free(str);
-	return (trimmed_str);
+	list->i = list->len + 1;
+	list->surplus += list->i;
+	if (*list->surplus == 0)
+		list->i -= 1;
 }
 
 char	*ft_strdup(const char *s1)
